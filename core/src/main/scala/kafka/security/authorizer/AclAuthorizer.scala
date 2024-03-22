@@ -37,6 +37,7 @@ import org.apache.kafka.security.authorizer.AclEntry
 import org.apache.kafka.server.authorizer.AclDeleteResult.AclBindingDeleteResult
 import org.apache.kafka.server.authorizer._
 import org.apache.kafka.server.common.MetadataVersion.IBP_2_0_IV1
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.client.ZKClientConfig
 
 import scala.annotation.nowarn
@@ -61,7 +62,7 @@ object AclAuthorizer {
   val AllowEveryoneIfNoAclIsFoundProp: String = "allow.everyone.if.no.acl.found"
 
   case class VersionedAcls(acls: Set[AclEntry], zkVersion: Int) {
-    def exists: Boolean = zkVersion != ZkVersion.UnknownVersion
+    def exists: Boolean = zkVersion != ZkVersion.UNKNOWN_VERSION
   }
 
   private class AclSeqs(seqs: Seq[AclEntry]*) {
@@ -75,7 +76,7 @@ object AclAuthorizer {
     def isEmpty: Boolean = !seqs.exists(_.nonEmpty)
   }
 
-  val NoAcls: VersionedAcls = VersionedAcls(Set.empty, ZkVersion.UnknownVersion)
+  val NoAcls: VersionedAcls = VersionedAcls(Set.empty, ZkVersion.UNKNOWN_VERSION)
   val WildcardHost: String = "*"
 
   // Orders by resource type, then resource pattern type and finally reverse ordering by name.

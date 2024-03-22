@@ -19,13 +19,14 @@ package kafka.server
 
 import kafka.server.metadata.ZkMetadataCache
 import kafka.utils.TestUtils
-import kafka.zk.{FeatureZNode, FeatureZNodeStatus, ZkVersion}
+import kafka.zk.{FeatureZNode, FeatureZNodeStatus}
 import org.apache.kafka.common.feature.{Features, SupportedVersionRange}
 import org.apache.kafka.server.common.{Features => JFeatures}
 import org.apache.kafka.common.utils.Exit
 import org.apache.kafka.server.common.MetadataVersion
 import org.apache.kafka.server.common.MetadataVersion.IBP_3_2_IV0
 import org.apache.kafka.test.{TestUtils => JTestUtils}
+import org.apache.kafka.zk.ZkVersion
 import org.junit.jupiter.api.Assertions._
 import org.junit.jupiter.api.{AfterEach, Test}
 
@@ -57,7 +58,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
     val finalizedFeaturesMap = Map[String, Short]("feature_1" -> 3)
     zkClient.createFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Enabled, finalizedFeaturesMap))
     val (mayBeFeatureZNodeBytes, version) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(version, ZkVersion.UnknownVersion)
+    assertNotEquals(version, ZkVersion.UNKNOWN_VERSION)
     assertFalse(mayBeFeatureZNodeBytes.isEmpty)
     FinalizedFeaturesAndEpoch(finalizedFeaturesMap, version)
   }
@@ -107,7 +108,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
     def updateAndCheckCache(finalizedFeatures: Map[String, Short]): Unit = {
       zkClient.updateFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Enabled, finalizedFeatures))
       val (mayBeFeatureZNodeNewBytes, updatedVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-      assertNotEquals(updatedVersion, ZkVersion.UnknownVersion)
+      assertNotEquals(updatedVersion, ZkVersion.UNKNOWN_VERSION)
       assertFalse(mayBeFeatureZNodeNewBytes.isEmpty)
       assertTrue(updatedVersion > initialFinalizedFeatures.epoch)
 
@@ -143,7 +144,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
 
     zkClient.deleteFeatureZNode()
     val (mayBeFeatureZNodeDeletedBytes, deletedVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertEquals(deletedVersion, ZkVersion.UnknownVersion)
+    assertEquals(deletedVersion, ZkVersion.UNKNOWN_VERSION)
     assertTrue(mayBeFeatureZNodeDeletedBytes.isEmpty)
     TestUtils.waitUntilTrue(() => {
       cache.getFeatureOption.isEmpty
@@ -164,7 +165,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
     val updatedFinalizedFeaturesMap = Map[String, Short]()
     zkClient.updateFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Disabled, updatedFinalizedFeaturesMap))
     val (mayBeFeatureZNodeNewBytes, updatedVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(updatedVersion, ZkVersion.UnknownVersion)
+    assertNotEquals(updatedVersion, ZkVersion.UNKNOWN_VERSION)
     assertFalse(mayBeFeatureZNodeNewBytes.isEmpty)
     assertTrue(updatedVersion > initialFinalizedFeatures.epoch)
     assertTrue(cache.getFeatureOption.isEmpty)
@@ -186,7 +187,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
     val updatedFinalizedFeaturesMap = Map[String, Short]()
     zkClient.updateFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Disabled, updatedFinalizedFeaturesMap))
     val (mayBeFeatureZNodeNewBytes, updatedVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(updatedVersion, ZkVersion.UnknownVersion)
+    assertNotEquals(updatedVersion, ZkVersion.UNKNOWN_VERSION)
     assertFalse(mayBeFeatureZNodeNewBytes.isEmpty)
     assertTrue(updatedVersion > initialFinalizedFeatures.epoch)
 
@@ -206,7 +207,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
     val incompatibleFinalizedFeaturesMap = Map[String, Short]("feature_1" -> 5)
     zkClient.createFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Enabled, incompatibleFinalizedFeaturesMap))
     val (mayBeFeatureZNodeBytes, initialVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(initialVersion, ZkVersion.UnknownVersion)
+    assertNotEquals(initialVersion, ZkVersion.UNKNOWN_VERSION)
     assertFalse(mayBeFeatureZNodeBytes.isEmpty)
 
     val exitLatch = new CountDownLatch(1)
@@ -254,7 +255,7 @@ class FinalizedFeatureChangeListenerTest extends QuorumTestHarness {
       "feature_1" -> (brokerFeatures.supportedFeatures.get("feature_1").max() + 1).asInstanceOf[Short])
     zkClient.updateFeatureZNode(FeatureZNode(IBP_3_2_IV0, FeatureZNodeStatus.Enabled, incompatibleFinalizedFeaturesMap))
     val (mayBeFeatureZNodeIncompatibleBytes, updatedVersion) = zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(updatedVersion, ZkVersion.UnknownVersion)
+    assertNotEquals(updatedVersion, ZkVersion.UNKNOWN_VERSION)
     assertFalse(mayBeFeatureZNodeIncompatibleBytes.isEmpty)
 
     try {

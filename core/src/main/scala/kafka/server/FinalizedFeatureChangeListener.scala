@@ -21,10 +21,11 @@ import kafka.server.metadata.{FeatureCacheUpdateException, ZkMetadataCache}
 
 import java.util.concurrent.{CountDownLatch, LinkedBlockingQueue, TimeUnit}
 import kafka.utils.Logging
-import kafka.zk.{FeatureZNode, FeatureZNodeStatus, KafkaZkClient, ZkVersion}
+import kafka.zk.{FeatureZNode, FeatureZNodeStatus, KafkaZkClient}
 import kafka.zookeeper.{StateChangeHandler, ZNodeChangeHandler}
 import org.apache.kafka.common.internals.FatalExitError
 import org.apache.kafka.server.util.ShutdownableThread
+import org.apache.kafka.zk.ZkVersion
 
 import scala.concurrent.TimeoutException
 
@@ -89,7 +90,7 @@ class FinalizedFeatureChangeListener(private val finalizedFeatureCache: ZkMetada
       //                                           API ensures that unknown version is returned only when the
       //                                           ZK node is absent. Therefore dataBytes should be empty in such
       //                                           a case.
-      if (version == ZkVersion.UnknownVersion) {
+      if (version == ZkVersion.UNKNOWN_VERSION) {
         info(s"Feature ZK node at path: $featureZkNodePath does not exist")
         finalizedFeatureCache.clearFeatures()
       } else {

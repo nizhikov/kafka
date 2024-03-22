@@ -21,12 +21,13 @@ import kafka.security.authorizer.AclAuthorizer.{ResourceOrdering, VersionedAcls}
 import kafka.security.authorizer.AclAuthorizer
 import kafka.utils.Logging
 import kafka.zk.ZkMigrationClient.{logAndRethrow, wrapZkException}
-import kafka.zk.{KafkaZkClient, ResourceZNode, ZkAclStore, ZkVersion}
+import kafka.zk.{KafkaZkClient, ResourceZNode, ZkAclStore}
 import kafka.zookeeper.{CreateRequest, DeleteRequest, SetDataRequest}
 import org.apache.kafka.common.acl.AccessControlEntry
 import org.apache.kafka.common.resource.ResourcePattern
 import org.apache.kafka.metadata.migration.{AclMigrationClient, MigrationClientException, ZkMigrationLeadershipState}
 import org.apache.kafka.security.authorizer.AclEntry
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException.Code
 
@@ -56,7 +57,7 @@ class ZkAclMigrationClient(
       val path = ResourceZNode.path(resourcePattern)
       CreateRequest(path, aclData, zkClient.defaultAcls(path), CreateMode.PERSISTENT)
     } else {
-      SetDataRequest(ResourceZNode.path(resourcePattern), aclData, ZkVersion.MatchAnyVersion)
+      SetDataRequest(ResourceZNode.path(resourcePattern), aclData, ZkVersion.MATCH_ANY_VERSION)
     }
 
     val (migrationZkVersion, responses) = zkClient.retryMigrationRequestsUntilConnected(Seq(request), state)
@@ -89,7 +90,7 @@ class ZkAclMigrationClient(
     resourcePattern: ResourcePattern,
     state: ZkMigrationLeadershipState
   ): ZkMigrationLeadershipState = {
-    val request = DeleteRequest(ResourceZNode.path(resourcePattern), ZkVersion.MatchAnyVersion)
+    val request = DeleteRequest(ResourceZNode.path(resourcePattern), ZkVersion.MATCH_ANY_VERSION)
     val (migrationZkVersion, responses) = zkClient.retryMigrationRequestsUntilConnected(Seq(request), state)
     if (responses.head.resultCode.equals(Code.OK) || responses.head.resultCode.equals(Code.NONODE)) {
       // Write the ACL notification outside of a metadata multi-op

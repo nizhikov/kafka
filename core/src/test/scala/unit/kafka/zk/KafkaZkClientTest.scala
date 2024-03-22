@@ -46,6 +46,7 @@ import org.apache.kafka.security.authorizer.AclEntry
 import org.apache.kafka.server.common.MetadataVersion
 import org.apache.kafka.server.config.ConfigType
 import org.apache.kafka.storage.internals.log.LogConfig
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.KeeperException.{Code, NoAuthException, NoNodeException, NodeExistsException}
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 import org.apache.zookeeper.client.ZKClientConfig
@@ -334,7 +335,7 @@ class KafkaZkClientTest extends QuorumTestHarness {
     // test with non-existing path
     val (data0, version0) = zkClient.getDataAndVersion(path)
     assertTrue(data0.isEmpty)
-    assertEquals(ZkVersion.UnknownVersion, version0)
+    assertEquals(ZkVersion.UNKNOWN_VERSION, version0)
 
     // create a test path
     zkClient.createRecursive(path)
@@ -358,7 +359,7 @@ class KafkaZkClientTest extends QuorumTestHarness {
     // test with non-existing path
     var statusAndVersion = zkClient.conditionalUpdatePath(path, "version0".getBytes(UTF_8), 0)
     assertFalse(statusAndVersion._1)
-    assertEquals(ZkVersion.UnknownVersion, statusAndVersion._2)
+    assertEquals(ZkVersion.UNKNOWN_VERSION, statusAndVersion._2)
 
     // create path
     zkClient.createRecursive(path)
@@ -371,7 +372,7 @@ class KafkaZkClientTest extends QuorumTestHarness {
     // test with invalid expected version
     statusAndVersion = zkClient.conditionalUpdatePath(path, "version2".getBytes(UTF_8), 2)
     assertFalse(statusAndVersion._1)
-    assertEquals(ZkVersion.UnknownVersion, statusAndVersion._2)
+    assertEquals(ZkVersion.UNKNOWN_VERSION, statusAndVersion._2)
   }
 
   @Test
@@ -616,7 +617,7 @@ class KafkaZkClientTest extends QuorumTestHarness {
       // try getting acls for non-existing resource
       var versionedAcls = zkClient.getVersionedAclsForResource(resource1)
       assertTrue(versionedAcls.acls.isEmpty)
-      assertEquals(ZkVersion.UnknownVersion, versionedAcls.zkVersion)
+      assertEquals(ZkVersion.UNKNOWN_VERSION, versionedAcls.zkVersion)
       assertFalse(zkClient.resourceExists(resource1))
 
 

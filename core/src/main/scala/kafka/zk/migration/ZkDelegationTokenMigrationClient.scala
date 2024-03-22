@@ -24,6 +24,7 @@ import kafka.zk._
 import kafka.zookeeper._
 import org.apache.kafka.metadata.migration.{DelegationTokenMigrationClient, ZkMigrationLeadershipState}
 import org.apache.kafka.common.security.token.delegation.TokenInformation
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.KeeperException.Code
 import org.apache.zookeeper.{CreateMode, KeeperException}
 
@@ -49,7 +50,7 @@ class ZkDelegationTokenMigrationClient(
     val path = DelegationTokenInfoZNode.path(tokenId)
 
     def set(tokenData: Array[Byte]): (Int, Seq[SetDataResponse]) = {
-      val setRequest = SetDataRequest(path, tokenData, ZkVersion.MatchAnyVersion)
+      val setRequest = SetDataRequest(path, tokenData, ZkVersion.MATCH_ANY_VERSION)
       zkClient.retryMigrationRequestsUntilConnected(Seq(setRequest), state)
     }
 
@@ -80,7 +81,7 @@ class ZkDelegationTokenMigrationClient(
   ): ZkMigrationLeadershipState = wrapZkException {
 
     val path = DelegationTokenInfoZNode.path(tokenId)
-    val requests = Seq(DeleteRequest(path, ZkVersion.MatchAnyVersion))
+    val requests = Seq(DeleteRequest(path, ZkVersion.MATCH_ANY_VERSION))
     val (migrationZkVersion, responses) = zkClient.retryMigrationRequestsUntilConnected(requests, state)
 
     if (responses.head.resultCode.equals(Code.NONODE)) {

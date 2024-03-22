@@ -48,6 +48,7 @@ import org.apache.kafka.metadata.migration.ZkMigrationState
 import org.apache.kafka.server.common.{AdminOperationException, ProducerIdsBlock}
 import org.apache.kafka.server.metrics.KafkaMetricsGroup
 import org.apache.kafka.server.util.KafkaScheduler
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.Code
 
@@ -429,7 +430,7 @@ class KafkaController(val config: KafkaConfig,
    */
   private def enableFeatureVersioning(): Unit = {
     val (mayBeFeatureZNodeBytes, version) = zkClient.getDataAndVersion(FeatureZNode.path)
-    if (version == ZkVersion.UnknownVersion) {
+    if (version == ZkVersion.UNKNOWN_VERSION) {
       val newVersion = createFeatureZNode(
         FeatureZNode(config.interBrokerProtocolVersion,
           FeatureZNodeStatus.Enabled,
@@ -473,7 +474,7 @@ class KafkaController(val config: KafkaConfig,
   private def disableFeatureVersioning(): Unit = {
     val newNode = FeatureZNode(config.interBrokerProtocolVersion, FeatureZNodeStatus.Disabled, Map.empty[String, Short])
     val (mayBeFeatureZNodeBytes, version) = zkClient.getDataAndVersion(FeatureZNode.path)
-    if (version == ZkVersion.UnknownVersion) {
+    if (version == ZkVersion.UNKNOWN_VERSION) {
       createFeatureZNode(newNode)
     } else {
       val existingFeatureZNode = FeatureZNode.decode(mayBeFeatureZNodeBytes.get)

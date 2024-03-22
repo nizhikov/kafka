@@ -19,13 +19,13 @@ package kafka.server
 
 import kafka.network.SocketServer
 import kafka.utils.TestUtils
-import kafka.zk.ZkVersion
 import org.apache.kafka.common.Uuid
 import org.apache.kafka.common.message.MetadataRequestData
 import org.apache.kafka.common.protocol.Errors
 import org.apache.kafka.common.requests.{MetadataRequest, MetadataResponse}
 import org.apache.kafka.server.common.MetadataVersion
 import org.apache.kafka.server.common.MetadataVersion.IBP_2_8_IV0
+import org.apache.kafka.zk.ZkVersion
 import org.junit.jupiter.api.Assertions._
 import org.junit.jupiter.api.Test
 
@@ -73,7 +73,7 @@ class MetadataRequestBetweenDifferentIbpTest extends BaseRequestTest {
 
   private def ensureControllerIn(brokerIds: Seq[Int]): Unit = {
     while (!brokerIds.contains(controllerSocketServer.config.brokerId)) {
-      zkClient.deleteController(ZkVersion.MatchAnyVersion)
+      zkClient.deleteController(ZkVersion.MATCH_ANY_VERSION)
       TestUtils.waitUntilControllerElected(zkClient)
     }
   }

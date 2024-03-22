@@ -33,9 +33,9 @@ import org.apache.kafka.metadata.migration.ConfigMigrationClient.ClientQuotaVisi
 import org.apache.kafka.metadata.migration.{ConfigMigrationClient, MigrationClientException, ZkMigrationLeadershipState}
 import org.apache.kafka.security.PasswordEncoder
 import org.apache.kafka.server.config.{ConfigEntityName, ConfigType}
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.KeeperException.Code
 import org.apache.zookeeper.{CreateMode, KeeperException}
-
 
 import java.{lang, util}
 import java.util.Properties
@@ -224,7 +224,7 @@ class ZkConfigMigrationClient(
     val configName = toZkEntityName(configResource.name())
     if (configType.isDefined) {
       val path = ConfigEntityZNode.path(configType.get, configName)
-      val requests = Seq(DeleteRequest(path, ZkVersion.MatchAnyVersion))
+      val requests = Seq(DeleteRequest(path, ZkVersion.MATCH_ANY_VERSION))
       val (migrationZkVersion, responses) = zkClient.retryMigrationRequestsUntilConnected(requests, state)
 
       if (responses.head.resultCode.equals(Code.NONODE)) {
@@ -335,7 +335,7 @@ class ZkConfigMigrationClient(
     val requests = if (create) {
       Seq(CreateRequest(ConfigEntityZNode.path(entityType, path), configData, zkClient.defaultAcls(path), CreateMode.PERSISTENT))
     } else {
-      Seq(SetDataRequest(ConfigEntityZNode.path(entityType, path), configData, ZkVersion.MatchAnyVersion))
+      Seq(SetDataRequest(ConfigEntityZNode.path(entityType, path), configData, ZkVersion.MATCH_ANY_VERSION))
     }
     val (migrationZkVersion, responses) = zkClient.retryMigrationRequestsUntilConnected(requests, state)
     if (!create && responses.head.resultCode.equals(Code.NONODE)) {

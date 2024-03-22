@@ -20,7 +20,7 @@ package kafka.server
 import java.util.{Optional, Properties}
 import java.util.concurrent.ExecutionException
 import kafka.utils.TestUtils
-import kafka.zk.{FeatureZNode, FeatureZNodeStatus, ZkVersion}
+import kafka.zk.{FeatureZNode, FeatureZNodeStatus}
 import kafka.utils.TestUtils.waitUntilTrue
 import org.apache.kafka.clients.admin.{Admin, FeatureUpdate, UpdateFeaturesOptions, UpdateFeaturesResult}
 import org.apache.kafka.common.errors.InvalidRequestException
@@ -31,6 +31,7 @@ import org.apache.kafka.common.protocol.Errors
 import org.apache.kafka.common.requests.{UpdateFeaturesRequest, UpdateFeaturesResponse}
 import org.apache.kafka.common.utils.Utils
 import org.apache.kafka.server.common.MetadataVersion.{IBP_2_7_IV0, IBP_3_2_IV0}
+import org.apache.kafka.zk.ZkVersion
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.{assertEquals, assertFalse, assertNotEquals, assertNotNull, assertThrows, assertTrue}
 
@@ -94,7 +95,7 @@ class UpdateFeaturesTest extends BaseRequestTest {
 
   private def getFeatureZNode(): FeatureZNode = {
     val (mayBeFeatureZNodeBytes, version) = serverForId(0).get.zkClient.getDataAndVersion(FeatureZNode.path)
-    assertNotEquals(version, ZkVersion.UnknownVersion)
+    assertNotEquals(version, ZkVersion.UNKNOWN_VERSION)
     FeatureZNode.decode(mayBeFeatureZNodeBytes.get)
   }
 

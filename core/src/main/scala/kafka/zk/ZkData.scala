@@ -566,11 +566,6 @@ object ConsumerOffset {
   def decode(bytes: Array[Byte]): Option[Long] = Option(bytes).map(new String(_, UTF_8).toLong)
 }
 
-object ZkVersion {
-  val MatchAnyVersion: Int = -1 // if used in a conditional set, matches any version (the value should match ZooKeeper codebase)
-  val UnknownVersion: Int = -2  // Version returned from get if node does not exist (internal constant for Kafka codebase, unused value in ZK)
-}
-
 object ZkStat {
   val NoStat = new Stat()
 }

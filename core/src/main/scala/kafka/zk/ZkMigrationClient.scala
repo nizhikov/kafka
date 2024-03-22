@@ -36,6 +36,7 @@ import org.apache.kafka.metadata.migration.TopicMigrationClient.{TopicVisitor, T
 import org.apache.kafka.metadata.migration._
 import org.apache.kafka.security.PasswordEncoder
 import org.apache.kafka.server.common.{ApiMessageAndVersion, ProducerIdsBlock}
+import org.apache.kafka.zk.ZkVersion
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.{AuthFailedException, NoAuthException, SessionClosedRequireAuthException}
 
@@ -345,7 +346,7 @@ class ZkMigrationClient(
     val newProducerIdBlockData = ProducerIdBlockZNode.generateProducerIdBlockJson(
       new ProducerIdsBlock(-1, nextProducerId, ProducerIdsBlock.PRODUCER_ID_BLOCK_SIZE))
 
-    val request = SetDataRequest(ProducerIdBlockZNode.path, newProducerIdBlockData, ZkVersion.MatchAnyVersion)
+    val request = SetDataRequest(ProducerIdBlockZNode.path, newProducerIdBlockData, ZkVersion.MATCH_ANY_VERSION)
     val (migrationZkVersion, _) = zkClient.retryMigrationRequestsUntilConnected(Seq(request), state)
     state.withMigrationZkVersion(migrationZkVersion)
   }

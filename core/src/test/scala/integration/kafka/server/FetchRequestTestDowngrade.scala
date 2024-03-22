@@ -19,13 +19,12 @@ package kafka.server
 
 import java.time.Duration
 import java.util.Arrays.asList
-
 import kafka.utils.TestUtils
-import kafka.zk.ZkVersion
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.server.common.MetadataVersion
 import org.apache.kafka.server.common.MetadataVersion.{IBP_2_7_IV0, IBP_3_1_IV0}
+import org.apache.kafka.zk.ZkVersion
 import org.junit.jupiter.api.Assertions._
 import org.junit.jupiter.api.Test
 
@@ -67,7 +66,7 @@ class FetchRequestTestDowngrade extends BaseRequestTest {
 
     private def ensureControllerIn(brokerIds: Seq[Int]): Unit = {
         while (!brokerIds.contains(controllerSocketServer.config.brokerId)) {
-            zkClient.deleteController(ZkVersion.MatchAnyVersion)
+            zkClient.deleteController(ZkVersion.MATCH_ANY_VERSION)
             TestUtils.waitUntilControllerElected(zkClient)
         }
     }

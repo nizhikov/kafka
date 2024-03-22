@@ -23,6 +23,7 @@ import kafka.server.QuorumTestHarness
 import kafka.zk._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.metadata.LeaderRecoveryState
+import org.apache.kafka.zk.ZkVersion
 import org.junit.jupiter.api.Assertions._
 import org.junit.jupiter.api.{BeforeEach, Test, TestInfo}
 
@@ -42,7 +43,7 @@ class ReplicationUtilsTest extends QuorumTestHarness {
     val topicPartition = new TopicPartition(topic, partition)
     val leaderAndIsr = LeaderAndIsr(leader, leaderEpoch, isr, LeaderRecoveryState.RECOVERED, 1)
     val leaderIsrAndControllerEpoch = LeaderIsrAndControllerEpoch(leaderAndIsr, controllerEpoch)
-    zkClient.createTopicPartitionStatesRaw(Map(topicPartition -> leaderIsrAndControllerEpoch), ZkVersion.MatchAnyVersion)
+    zkClient.createTopicPartitionStatesRaw(Map(topicPartition -> leaderIsrAndControllerEpoch), ZkVersion.MATCH_ANY_VERSION)
   }
 
   @Test

@@ -114,13 +114,16 @@ class MetadataQuorumCommandTest {
         assertTrue(outputs[3].matches("HighWatermark:\\s+-?\\d+"));
         assertTrue(outputs[4].matches("MaxFollowerLag:\\s+\\d+"));
         assertTrue(outputs[5].matches("MaxFollowerLagTimeMs:\\s+-?\\d+"));
-        assertTrue(outputs[6].matches("CurrentVoters:\\s+\\[\\d+(,\\d+)*]"));
+        String voterPattern = "\\{\"id\":\\d+,\"directoryId\":\".+?\",\"endpoints\":\\[.??\\]}";
+        assertTrue(outputs[6].matches("CurrentVoters:\\s+\\[" + voterPattern + "(," + voterPattern + ")?\\]"));
 
         // There are no observers if we have fewer brokers than controllers
         if (cluster.type() == Type.CO_KRAFT && cluster.config().numBrokers() <= cluster.config().numControllers())
             assertTrue(outputs[7].matches("CurrentObservers:\\s+\\[]"));
-        else
-            assertTrue(outputs[7].matches("CurrentObservers:\\s+\\[\\d+(,\\d+)*]"));
+        else {
+            String observerPattern = "\\{\"id\":\\d+,\"directoryId\":\".+?\"}";
+            assertTrue(outputs[7].matches("CurrentObservers:\\s+\\[" + observerPattern + "(," + observerPattern + ")?\\]"));
+        }
     }
 
     @ClusterTest(types = {Type.KRAFT, Type.CO_KRAFT})

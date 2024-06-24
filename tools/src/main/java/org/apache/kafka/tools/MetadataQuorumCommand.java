@@ -22,7 +22,9 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.utils.Exit;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.server.util.CommandLineUtils;
+import org.apache.kafka.server.util.Json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentGroup;
@@ -37,12 +39,15 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -208,7 +213,7 @@ public class MetadataQuorumCommand {
         return Duration.between(lastTimestamp, now).toMillis();
     }
 
-    private static void handleDescribeStatus(Admin admin) throws ExecutionException, InterruptedException {
+    private static void handleDescribeStatus(Admin admin) throws ExecutionException, InterruptedException, JsonProcessingException {
         String clusterId = admin.describeCluster().clusterId().get();
         QuorumInfo quorumInfo = admin.describeMetadataQuorum().quorumInfo().get();
         int leaderId = quorumInfo.leaderId();
@@ -225,6 +230,21 @@ public class MetadataQuorumCommand {
             maxFollowerLagTimeMs = -1;
         }
 
+        Map<Integer, QuorumInfo.Node> nodes = quorumInfo.nodes();
+
+        Function<QuorumInfo.ReplicaState, Voter> toReplicaState = replicaState -> new Voter(
+            replicaState.replicaId(),
+            replicaState.replicaDirectoryId().toString(),
+            nodes.containsKey(replicaState.replicaId()) ? nodes.get(replicaState.replicaId()).endpoints()
+                .stream()
+                .map(raftVoterEndpoint -> new Endpoint(raftVoterEndpoint.name(), raftVoterEndpoint.host(), raftVoterEndpoint.port()))
+                .collect(Collectors.toList()) : Collections.emptyList());
+
+        Collection<Voter> currentVoters = quorumInfo.voters().stream().map(toReplicaState).collect(Collectors.toList());
+        Collection<Observer> observers = quorumInfo.observers().stream()
+            .map(replicaState -> new Observer(replicaState.replicaId(), replicaState.replicaDirectoryId().toString()))
+            .collect(Collectors.toList());
+
         System.out.println(
             "ClusterId:              " + clusterId +
             "\nLeaderId:               " + quorumInfo.leaderId() +
@@ -232,9 +252,63 @@ public class MetadataQuorumCommand {
             "\nHighWatermark:          " + quorumInfo.highWatermark() +
             "\nMaxFollowerLag:         " + maxFollowerLag +
             "\nMaxFollowerLagTimeMs:   " + maxFollowerLagTimeMs +
-            "\nCurrentVoters:          " + quorumInfo.voters().stream().map(QuorumInfo.ReplicaState::replicaId).map(Object::toString).collect(Collectors.joining(",", "[", "]")) +
-            "\nCurrentObservers:       " + quorumInfo.observers().stream().map(QuorumInfo.ReplicaState::replicaId).map(Objects::toString).collect(Collectors.joining(",", "[", "]"))
+            "\nCurrentVoters:          " + Json.encodeAsString(currentVoters) +
+            "\nCurrentObservers:       " + Json.encodeAsString(observers)
         );
     }
 
+    public static class Observer {
+        private final int id;
+        private final String directoryId;
+
+        public Observer(int id, String directoryId) {
+            this.id = id;
+            this.directoryId = directoryId;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getDirectoryId() {
+            return directoryId;
+        }
+    }
+
+    public static class Voter extends Observer {
+        private final Collection<Endpoint> endpoints;
+
+        public Voter(int id, String directoryId, Collection<Endpoint> endpoints) {
+            super(id, directoryId);
+            this.endpoints = endpoints;
+        }
+
+        public Collection<Endpoint> getEndpoints() {
+            return endpoints;
+        }
+    }
+
+    public static class Endpoint {
+        private final String name;
+        private final String host;
+        private final long port;
+
+        public Endpoint(String name, String host, long port) {
+            this.name = name;
+            this.host = host;
+            this.port = port;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public long getPort() {
+            return port;
+        }
+    }
 }
